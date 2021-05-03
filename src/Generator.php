@@ -7,7 +7,6 @@ use DataTables\Editor;
 use DataTables\Editor\Field;
 use Exception;
 use stdClass;
-use App\Tools\DataTablesEditor as DTE;
 
 class Generator
 {
@@ -51,7 +50,7 @@ class Generator
         foreach ($this->config['buttons'] as $button) {
             $buttons[] = [
                 'extend' => $button,
-                'editor' => DTE::JSLiteral('editor'),
+                'editor' => self::JSLiteral('editor'),
             ];
         }
         return $this->jsonWithLiterals($buttons);
@@ -63,7 +62,7 @@ class Generator
         foreach ($this->config['fields'] as $fieldName => $fieldDetails) {
             $column = [];
             if (isset($fieldDetails['renderer'])) {
-                $column['render'] = DTE::JSLiteral($fieldDetails['renderer']);
+                $column['render'] = self::JSLiteral($fieldDetails['renderer']);
             } else {
                 $column['data'] = $fieldName;
             }
