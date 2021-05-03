@@ -2,10 +2,10 @@
 
 namespace arweb\DataTablesEditor;
 
-use App\Http\Controllers\Controller;
+use \App\Http\Controllers\Controller as LaravelController;
 use Exception;
 
-abstract class Controller extends Controller
+abstract class Controller extends LaravelController
 {
     protected $editor;
     protected $editorConfigKey;
@@ -22,7 +22,7 @@ abstract class Controller extends Controller
         if (empty($this->editorViewFile)) {
             throw new Exception('Fatal error: editor *view file* not set.');
         }
-        $this->editor = new Engine($this->editorConfigKey);
+        $this->editor = new Generator($this->editorConfigKey);
     }
 
     public function editorView()
