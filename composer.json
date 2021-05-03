@@ -1,21 +1,29 @@
 {
-  "name": "arweb/laravel-datatables-editor-plugin",
-  "type": "library",
-  "description": "Allows easy integration of DataTables Editor with Laravel.",
-  "keywords": [
-    "laravel",
-    "datatables",
-    "editor",
-    "dte"
-  ],
-  "homepage": "https://arweb.de",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Florian Arndt",
-      "email": "florian.arndt@gmail.com",
-      "homepage": "https://arweb.de",
-      "role": "Developer"
+    "name": "arweb/laravel-datatables-editor-plugin",
+    "type": "library",
+    "description": "Allows easy integration of DataTables Editor with Laravel.",
+    "keywords": [
+        "laravel",
+        "datatables",
+        "editor",
+        "dte"
+    ],
+    "homepage": "https://arweb.de",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Florian Arndt",
+            "email": "florian.arndt@gmail.com",
+            "homepage": "https://arweb.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.2 || ^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "arweb\\DataTablesEditor\\": "src"
+        }
     }
-  ]
 }
