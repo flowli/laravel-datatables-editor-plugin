@@ -40,18 +40,33 @@ class Generator
         // default: 3 buttons
         if (empty($this->config['buttons'])) {
             $this->config['buttons'] = [
-                'create',
-                'edit',
-                'remove',
+                'extend|create',
+                'extend|edit',
+                'extend|remove',
             ];
         }
 
         $buttons = [];
-        foreach ($this->config['buttons'] as $button) {
-            $buttons[] = [
-                'extend' => $button,
-                'editor' => self::JSLiteral('editor'),
-            ];
+        foreach ($this->config['buttons'] as $buttonDefinition) {
+            $buttonDefinitionParts = explode('|', $buttonDefinition);
+            $buttonType = $buttonDefinitionParts[0];
+            switch ($buttonType) {
+                case 'extend':
+                    $extendType = $buttonDefinitionParts[1];
+                    $buttons[] = [
+                        'extend' => $extendType,
+                        'editor' => self::JSLiteral('editor'),
+                    ];
+                    break;
+                case 'custom':
+                    $customButtonText = $buttonDefinitionParts[1];
+                    $customButtonFunctionName = $buttonDefinitionParts[2];
+                    $buttons[] = [
+                        'text' => $customButtonText,
+                        'action' => self::JSLiteral($customButtonFunctionName),
+                    ];
+                    break;
+            }
         }
         return $this->jsonWithLiterals($buttons);
     }
