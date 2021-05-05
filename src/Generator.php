@@ -61,10 +61,12 @@ class Generator
         $columns = [];
         foreach ($this->config['fields'] as $fieldName => $fieldDetails) {
             $column = [];
+            $readFromDatabaseTableColumn = !isset($fieldDetails['use_table_column']) || $fieldDetails['use_table_column'] !== false;
+            if ($readFromDatabaseTableColumn) {
+                $column['data'] = $fieldName;
+            }
             if (isset($fieldDetails['renderer'])) {
                 $column['render'] = self::JSLiteral($fieldDetails['renderer']);
-            } else {
-                $column['data'] = $fieldName;
             }
             $columns[] = $column;
         }
