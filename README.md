@@ -1,20 +1,16 @@
 # Laravel DataTables Editor Package
 
-## Setup
+## Prepare
 
-1. Install this Laravel-compatible composer package by running `composer require arweb/laravel-datatables-editor-plugin`
-   .
-2. Register the service provider:
-    1. open `config/app.php` of your Laravel project
-    2. inside `app.php`: add `arweb\DataTablesEditor\DTEServiceProvider::class` to the config array at key `provider`
-    3. in doubt check the
-       Laravel's [provider documentation](https://laravel.com/docs/8.x/providers#registering-providers)
+1. **Have or create** a Laravel project
+2. **Install this package** with `composer require arweb/laravel-datatables-editor-plugin`
+3. **Register the service provider** in `config/app.php`:
+   add `arweb\DataTablesEditor\DTEServiceProvider::class` to the config array at key `provider`
+4. **Get DataTables Editor**. Since it is not free of charge, it cannot be included in this package. You could:
+    1. **Obtain a license** should be obtained at [DataTables Editor](https://editor.datatables.net)
+    2. **Download** the PHP version's ZIP file at https://editor.datatables.net/download/
+    3. **Install** with `php artisan dte:install ~/Desktop/Editor-PHP-2.0.2.zip` - your ZIP file path may vary
 
-3. Because DataTables Editor is a commercial product, it cannot be bundled in this package. The recommendation is:
-    1. get a valid [DataTables Editor](https://editor.datatables.net) license
-    2. download a ZIP file at https://editor.datatables.net
-    3. install it by running `php artisan dte:install-editor-zipfile <filename>`
-    
-## Usage
+## Quick demo
 
-@TODO: describe a sample usage
+@TODO: describe a basic use of this package

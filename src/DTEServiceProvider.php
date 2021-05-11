@@ -3,9 +3,11 @@
 namespace arweb\DataTablesEditor;
 
 use arweb\DataTablesEditor\Commands\DTECreateConfigCommand;
+use arweb\DataTablesEditor\Commands\DTEInstallEditorFromZIPFileCommand;
 use Illuminate\Support\ServiceProvider;
 
-// see https://laravel.com/docs/8.x/packages#service-providers
+// API docs: https://laravel.com/docs/8.x/packages#service-providers
+
 class DTEServiceProvider extends ServiceProvider
 {
     public function boot()
@@ -13,7 +15,8 @@ class DTEServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/Views', 'dte');
         if ($this->app->runningInConsole()) {
             $this->commands([
-                DTECreateConfigCommand::class
+                DTECreateConfigCommand::class,
+                DTEInstallEditorFromZIPFileCommand::class,
             ]);
         }
     }
