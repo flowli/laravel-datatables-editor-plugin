@@ -9,7 +9,7 @@
 4. **Get DataTables Editor**. Since it is not free of charge, it cannot be included in this package. You could:
     1. **Obtain a license** should be obtained at [DataTables Editor](https://editor.datatables.net)
     2. **Download** the PHP version's ZIP file at https://editor.datatables.net/download/
-    3. **Install** with `php artisan dte:install ~/Desktop/Editor-PHP-2.0.2.zip` - your ZIP file path may vary
+    3. **Install** with `php artisan dte2:install ~/Desktop/Editor-PHP-2.0.2.zip` - your ZIP file path may vary
 
 ## Quick demo
 

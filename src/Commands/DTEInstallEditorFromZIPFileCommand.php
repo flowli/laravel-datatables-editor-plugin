@@ -15,7 +15,7 @@ class DTEInstallEditorFromZIPFileCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'dte:install {zip_file_or_folder} {--debug}';
+    protected $signature = 'dte2:install {zip_file_or_folder} {--debug}';
 
     /**
      * The console command description.
@@ -31,9 +31,12 @@ class DTEInstallEditorFromZIPFileCommand extends Command
      */
     public function handle()
     {
+        /**
+         * A) extract ZIP file
+         */
         $zipFilePath = $this->argument('zip_file_or_folder');
         $targetParentPath = public_path();
-        $targetPath = public_path('DTE2');
+        $targetPath = public_path('dte2');
 
         $this->info('Copying "' . $zipFilePath . '" into this project');
 
@@ -71,6 +74,25 @@ class DTEInstallEditorFromZIPFileCommand extends Command
         $zip->close();
 
         $this->info('The archive was extracted to ' . $targetParentPath);
+
+        /**
+         * B) download DataTables Editor images
+         */
+        $remoteImageDirectory = 'https://raw.githubusercontent.com/DataTables/DataTables/master/media/images';
+        $localImagePath = public_path('images');
+        @mkdir($localImagePath);
+        $filesToDownload = [
+            'sort_asc.png',
+            'sort_asc_disabled.png',
+            'sort_both.png',
+            'sort_desc.png',
+            'sort_desc_disabled.png',
+        ];
+        foreach ($filesToDownload as $fileName) {
+            $fileData = @file_get_contents($remoteImageDirectory . '/' . $fileName);
+            @file_put_contents($localImagePath . '/' . $fileName, $fileData);
+        }
+        $this->info('A total of ' . count($filesToDownload) . ' was downloaded to ' . $localImagePath);
     }
 
     public function error($message, $verbosity = null)

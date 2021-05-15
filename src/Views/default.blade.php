@@ -1,15 +1,11 @@
 @extends('layouts.app')
 
 @section('head')
-    @foreach(['css/dte/jquery.dataTables.min.css', 'css/dte/buttons.dataTables.min.css',
-    'css/dte/select.dataTables.min.css', 'css/dte/dataTables.dateTime.min.css',
-    'Editor-PHP/css/editor.dataTables.min.css'] as $dte_css_filename)
-        <link rel="stylesheet" type="text/css" href="{{ asset($dte_css_filename) }}"/>
+    @foreach($assets['css'] as $css_url)
+        <link rel="stylesheet" type="text/css" href="{{ $css_url }}"/>
     @endforeach
-    @foreach(['js/dte/jquery-3.5.1.js', 'js/dte/jquery.dataTables.min.js',
-'js/dte/dataTables.buttons.min.js', 'js/dte/dataTables.select.min.js',
-'js/dte/dataTables.dateTime.min.js', 'Editor-PHP/js/dataTables.editor.min.js'] as $dte_js_filename)
-        <script src="{{ asset($dte_js_filename) }}"></script>
+    @foreach($assets['js'] as $js_url)
+        <script src="{{ $js_url }}"></script>
     @endforeach
 @endsection
 
@@ -68,7 +64,9 @@
                 columns: {!! $dataTableColumnsJSON !!},
                 buttons: {!! $editorButtonsJSON !!},
                 language: {
-                    url: '{{ asset('js/dte/lang/de_DE.json') }}'
+                    @if(file_exists(public_path('DTE2-Custom/lang/de_DE.json')))
+                    url: '{{ asset('dte2-assets/lang/de_DE.json') }}'
+                    @endif
                 }
             });
         });

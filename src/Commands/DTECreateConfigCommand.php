@@ -11,7 +11,7 @@ class DTECreateConfigCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'dte:config:create {config_file} {eloquent_model} {--debug}';
+    protected $signature = 'dte2:config:create {config_file} {eloquent_model} {--debug}';
 
     /**
      * The console command description.

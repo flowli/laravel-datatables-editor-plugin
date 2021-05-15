@@ -20,12 +20,12 @@ class Generator
         }
     }
 
-    public function view($viewFile)
+    public function view($viewFile, $viewParams)
     {
         $this->config['editorFieldsJSON'] = $this->editorFieldsJSON();
         $this->config['dataTableColumnsJSON'] = $this->dataTableColumnsJSON();
         $this->config['editorButtonsJSON'] = $this->editorButtonsJSON();
-        return view($viewFile, $this->config);
+        return view($viewFile, $this->config + $viewParams);
     }
 
     public static function JSLiteral($literal)
@@ -125,7 +125,7 @@ class Generator
     public function endpoint(bool $debug = false)
     {
         $sql_details = $this->sqlDetails(); // wird von DTE-Backend-Bibliothek benötigt
-        include(public_path() . '/Editor-PHP/lib/DataTables.php');
+        include(public_path() . '/dte2/lib/DataTables.php');
         $editor = Editor::inst($db, $this->config['mainTable']);
         $fields = [];
         foreach ($this->config['fields'] as $fieldName => $fieldDetails) {
