@@ -12,9 +12,9 @@ class Generator
 {
     protected $config;
 
-    public function __construct($laravelConfigKey)
+    public function __construct($config)
     {
-        $this->config = Config::get($laravelConfigKey);
+        $this->config = $config;
         if (empty($this->config)) {
             throw new Exception('No editor config found under Laravel config key "' . $laravelConfigKey . '".');
         }
