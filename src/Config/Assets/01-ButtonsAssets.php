@@ -17,6 +17,7 @@ return [
             'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js',
             'https://cdn.datatables.net/buttons/1.7.0/js/buttons.html5.min.js',
             'https://cdn.datatables.net/buttons/1.7.0/js/buttons.print.min.js',
+            //'https://github.com/flowli/.../assets/js/csv-import-de.js'
         ],
         'css' => [
             'https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css',
