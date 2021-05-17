@@ -5,7 +5,7 @@ return [
             'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.3/papaparse.min.js',
             'https://code.jquery.com/jquery-3.5.1.js',
             'https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js',
-            'https://editor.datatables.net/extensions/Editor/js/dataTables.editor.min.js',
+            'dte2/js/dataTables.editor.min.js',
             'https://cdn.datatables.net/datetime/1.0.3/js/dataTables.dateTime.min.js',
             'https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js',
             'https://cdn.datatables.net/buttons/1.7.0/js/dataTables.buttons.min.js',
