@@ -32,6 +32,23 @@ abstract class Controller extends LaravelController
     {
         // load conditional asset config (which assets to load in which order under which condition)…
         // …and build a list of assets named $applyingAssets
+        $applyingAssets = $this->determineRequiredAssets();
+        // convert asset strings into full urls
+        foreach ($applyingAssets as $assetType => $assetStrings) {
+            $applyingAssets[$assetType] = $this->turnURLsIntoAssets($applyingAssets[$assetType]);
+        }
+
+        // provide the editor view
+        return $this->editor->view($this->editorViewFile, ['assets' => $applyingAssets]);
+    }
+
+    public function editorAPI()
+    {
+        $this->editor->endpoint();
+    }
+
+    protected function determineRequiredAssets()
+    {
         $assetConfigDir = __DIR__ . '/Config/Assets';
         $applyingAssets = [];
         $assetConfigFiles = scandir($assetConfigDir);
@@ -43,7 +60,7 @@ abstract class Controller extends LaravelController
             $conditionalAssetsMap = require($assetConfigDir . DIRECTORY_SEPARATOR . $assetConfigFile);
             // merge applying conditional assets into $assets
             foreach ($conditionalAssetsMap as $conditionExpression => $condtionallyApplyingAssets) {
-                $conditionResult = $this->evaluateConditionalAssetConditionExpression($conditionExpression);
+                $conditionResult = $this->evaluateAssetCondition($conditionExpression);
                 if ($conditionResult) {
                     foreach ($condtionallyApplyingAssets as $assetType => $condtionallyApplyingAsset) {
                         if (!isset($applyingAssets[$assetType])) {
@@ -54,16 +71,16 @@ abstract class Controller extends LaravelController
                 }
             }
         }
-        // convert asset strings into full urls
-        foreach ($applyingAssets as $assetType => $assetStrings) {
-            $applyingAssets[$assetType] = $this->turnURLsIntoAssets($applyingAssets[$assetType]);
-        }
-
-        // provide the editor view
-        return $this->editor->view($this->editorViewFile, ['assets' => $applyingAssets]);
+        return $applyingAssets;
     }
 
-    protected function evaluateConditionalAssetConditionExpression($conditionExpression)
+    /**
+     * Checks if a condition for including assets is true or not
+     * @param $conditionExpression
+     * @return bool
+     * @throws Exception
+     */
+    protected function evaluateAssetCondition($conditionExpression)
     {
         if (empty($conditionExpression)) {
             return true;
@@ -72,24 +89,19 @@ abstract class Controller extends LaravelController
         $conditionType = strtolower(array_shift($conditionParts));
         $conditionValue = count($conditionParts) > 0 ? join(':', $conditionParts) : '';
         switch ($conditionType) {
-            case 'buttons':
-                if (empty($this->editorConfig['buttons']) || !is_array($this->editorConfig['buttons'])) {
+            case 'feature':
+                if (empty($this->editorConfig['features']) || !is_array($this->editorConfig['features'])) {
                     return false;
                 }
-                return in_array($conditionValue, $this->editorConfig['buttons']);
+                return in_array($conditionValue, $this->editorConfig['features']);
                 break;
             default:
                 throw new Exception('Unknown conditional asset condition type - cannot render DTE.');
         }
     }
 
-    public function editorAPI()
-    {
-        $this->editor->endpoint();
-    }
-
     /**
-     * TODO: Turns local paths and CDN urls into asset()'ables
+     * Turns local paths and CDN urls into asset()'ables and provides full urls
      * @param $resourcePaths Array of either local url path or full external URL
      * @return array
      */

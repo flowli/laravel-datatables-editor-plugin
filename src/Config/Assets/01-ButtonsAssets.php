@@ -3,7 +3,7 @@
  * Make sure *only* the local+licensed copy of dataTables.editor.min.js is used here (array item == 'dte2/js/dataTables.editor.min.js')
  */
 return [
-    'buttons:extend|csv' => [
+    'feature:csv-import' => [
         'js' => [
             'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.3/papaparse.min.js',
             'https://code.jquery.com/jquery-3.5.1.js',
@@ -17,7 +17,7 @@ return [
             'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js',
             'https://cdn.datatables.net/buttons/1.7.0/js/buttons.html5.min.js',
             'https://cdn.datatables.net/buttons/1.7.0/js/buttons.print.min.js',
-            //'https://github.com/flowli/.../assets/js/csv-import-de.js'
+            'https://raw.githubusercontent.com/flowli/laravel-datatables-editor-plugin/master/assets/js/csv-import-de.js',
         ],
         'css' => [
             'https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css',
