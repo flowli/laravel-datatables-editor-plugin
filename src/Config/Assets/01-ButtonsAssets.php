@@ -1,4 +1,7 @@
 <?php
+/**
+ * Make sure *only* the local+licensed copy of dataTables.editor.min.js is used here (array item == 'dte2/js/dataTables.editor.min.js')
+ */
 return [
     'buttons:extend|csv' => [
         'js' => [
