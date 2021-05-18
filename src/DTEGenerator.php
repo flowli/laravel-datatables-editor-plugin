@@ -8,9 +8,10 @@ use DataTables\Editor\Field;
 use Exception;
 use stdClass;
 
-class Generator
+class DTEGenerator
 {
     protected $config;
+    protected $assetsHandler;
 
     public function __construct($config)
     {
@@ -18,6 +19,7 @@ class Generator
         if (empty($this->config)) {
             throw new Exception('No editor config found under Laravel config key "' . $laravelConfigKey . '".');
         }
+        $this->assetsHandler = new DTEAssetsHandler($this);
     }
 
     public function view($viewFile, $viewParams)

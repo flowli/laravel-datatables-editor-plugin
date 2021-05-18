@@ -2,52 +2,11 @@
 
 namespace arweb\DataTablesEditor;
 
-use \App\Http\Controllers\Controller as LaravelController;
 use Exception;
-use Illuminate\Support\Facades\Config;
 
-abstract class Controller extends LaravelController
+class DTEAssetsHandler
 {
-    protected $editor;
-    protected $editorConfigKey;
-    protected $editorViewFile;
-    protected $editorConfig;
-
-    /**
-     * @throws Exception
-     */
-    public function __construct()
-    {
-        if (empty($this->editorConfigKey)) {
-            throw new Exception('Fatal error: editor *config key* not set.');
-        }
-        if (empty($this->editorViewFile)) {
-            throw new Exception('Fatal error: editor *view file* not set.');
-        }
-        $this->editorConfig = Config::get($this->editorConfigKey);
-        $this->editor = new Generator($this->editorConfig);
-    }
-
-    public function editorView()
-    {
-        // load conditional asset config (which assets to load in which order under which condition)…
-        // …and build a list of assets named $applyingAssets
-        $applyingAssets = $this->determineRequiredAssets();
-        // convert asset strings into full urls
-        foreach ($applyingAssets as $assetType => $assetStrings) {
-            $applyingAssets[$assetType] = $this->turnURLsIntoAssets($applyingAssets[$assetType]);
-        }
-
-        // provide the editor view
-        return $this->editor->view($this->editorViewFile, ['assets' => $applyingAssets]);
-    }
-
-    public function editorAPI()
-    {
-        $this->editor->endpoint();
-    }
-
-    protected function determineRequiredAssets()
+    public static function determineRequiredAssets(DTEController $instance)
     {
         $assetConfigDir = __DIR__ . '/Config/Assets';
         $applyingAssets = [];
@@ -60,7 +19,7 @@ abstract class Controller extends LaravelController
             $conditionalAssetsMap = require($assetConfigDir . DIRECTORY_SEPARATOR . $assetConfigFile);
             // merge applying conditional assets into $assets
             foreach ($conditionalAssetsMap as $conditionExpression => $condtionallyApplyingAssets) {
-                $conditionResult = $this->evaluateAssetCondition($conditionExpression);
+                $conditionResult = self::evaluateAssetCondition($conditionExpression, $instance);
                 if ($conditionResult) {
                     foreach ($condtionallyApplyingAssets as $assetType => $condtionallyApplyingAsset) {
                         if (!isset($applyingAssets[$assetType])) {
@@ -77,10 +36,11 @@ abstract class Controller extends LaravelController
     /**
      * Checks if a condition for including assets is true or not
      * @param $conditionExpression
+     * @param Controller $instance
      * @return bool
      * @throws Exception
      */
-    protected function evaluateAssetCondition($conditionExpression)
+    public static function evaluateAssetCondition($conditionExpression, DTEController $instance)
     {
         if (empty($conditionExpression)) {
             return true;
@@ -90,10 +50,10 @@ abstract class Controller extends LaravelController
         $conditionValue = count($conditionParts) > 0 ? join(':', $conditionParts) : '';
         switch ($conditionType) {
             case 'feature':
-                if (empty($this->editorConfig['features']) || !is_array($this->editorConfig['features'])) {
+                if (empty($instance->editorConfig['features']) || !is_array($instance->editorConfig['features'])) {
                     return false;
                 }
-                return in_array($conditionValue, $this->editorConfig['features']);
+                return in_array($conditionValue, $instance->editorConfig['features']);
                 break;
             default:
                 throw new Exception('Unknown conditional asset condition type - cannot render DTE.');
@@ -105,7 +65,7 @@ abstract class Controller extends LaravelController
      * @param $resourcePaths Array of either local url path or full external URL
      * @return array
      */
-    protected function turnURLsIntoAssets($resourcePaths)
+    public static function turnURLsIntoAssets($resourcePaths)
     {
         // ensure the asset paths exist
         $assetUrlPath = 'dte2-assets';
@@ -115,6 +75,11 @@ abstract class Controller extends LaravelController
         // build a list of asset urls
         $assets = [];
         foreach ($resourcePaths as $resourcePath) {
+            // rewrites (to facilitate 1:1 path copies from editor.datatables.net examples)
+            $resourcePath = preg_replace('|^//|', 'https://', $resourcePath);
+            $resourcePath = preg_replace('|^../../extensions/Editor/|i', 'dte2/', $resourcePath);
+
+            // make full, accessable urls out of all paths
             $isExternalUrl = preg_match('/^http(s)?\:/', $resourcePath);
             if ($isExternalUrl) {
                 $parsedUrl = parse_url($resourcePath, PHP_URL_PATH);
