@@ -154,15 +154,34 @@ class DTEGenerator
         if (empty($config)) {
             throw new Exception('Fatal error: could not find database connection');
         }
-        return [
-            'type' => 'Mysql', // TODO: expand this to all types that DTE allows
+        $databaseType = $this->getDatabaseTypeByLaravelDriverName($config['driver']);
+        if (!isset($databaseType)) {
+            throw new Exception(
+                'Fatal error: database driver "' . $config['driver'] . '" is not supported yet.'
+            );
+        }
+        $sqlDetails = [
+            'type' => $databaseType,
             'user' => $config['username'],
             'pass' => $config['password'],
             'host' => $config['host'],
             'port' => $config['port'],
             'db' => $config['database'],
-            'dsn' => 'charset=utf8mb4',
             'pdoAttr' => array()
         ];
+        if (!empty($config['charset'])) {
+            $sqlDetails['dsn'] = 'charset=' . $config['charset'];
+        }
+        return $sqlDetails;
+    }
+
+    protected function getDatabaseTypeByLaravelDriverName($driver)
+    {
+        $mapping = [
+            'mysql' => 'Mysql',
+            'pgsql' => 'Postgres',
+            'sqlsrv' => null,
+        ];
+        return $mapping[$driver] ?? null;
     }
 }
