@@ -17,7 +17,7 @@ class DTEGenerator
     {
         $this->config = $config;
         if (empty($this->config)) {
-            throw new Exception('No editor config found under Laravel config key "' . $laravelConfigKey . '".');
+            throw new Exception('No editor config found - go create it.');
         }
         $this->assetsHandler = new DTEAssetsHandler($this);
     }
