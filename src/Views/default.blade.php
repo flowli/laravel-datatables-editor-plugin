@@ -7,6 +7,11 @@
     @foreach($assets['js'] as $js_url)
         <script src="{{ $js_url }}"></script>
     @endforeach
+    <style type="text/css">
+        .dataTables_length {
+            margin: 6px 0 0 24px;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -51,7 +56,7 @@
             });
 
             $('#{{ $routeName }}').DataTable({
-                dom: "Bfrtip",
+                dom: "Blfrtip",
                 ajax: {
                     url: '{{ route($routeName) }}',
                     type: 'POST',
@@ -61,6 +66,7 @@
                 },
                 serverSide: true,
                 select: true,
+                lengthMenu: [[10, 50, 100, 1000, -1], [10, 50, 100, 1000, 'Alle(!)']],
                 columns: {!! $dataTableColumnsJSON !!},
                 buttons: {!! $editorButtonsJSON !!},
                 language: {
