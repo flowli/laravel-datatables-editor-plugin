@@ -45,7 +45,12 @@ abstract class DTEController extends LaravelController
         // provide the editor view
         return $this->editor->view(
             $this->editorViewFile,
-            ['assets' => $applyingAssets, 'dom' => $dom]);
+            [
+                'languagePath' => $this->editorConfig['languagePath'] ?? null,
+                'assets' => $applyingAssets,
+                'dom' => $dom
+            ]
+        );
     }
 
     public function editorAPI()

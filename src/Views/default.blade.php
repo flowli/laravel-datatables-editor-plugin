@@ -65,13 +65,14 @@
                     }
                 },
                 serverSide: true,
+                processing: true,
                 select: true,
                 lengthMenu: [[10, 50, 100, 1000, -1], [10, 50, 100, 1000, 'Alle(!)']],
                 columns: {!! $dataTableColumnsJSON !!},
                 buttons: {!! $editorButtonsJSON !!},
                 language: {
-                    @if(file_exists(public_path('DTE2-Custom/lang/de_DE.json')))
-                    url: '{{ asset('dte2-assets/lang/de_DE.json') }}'
+                    @if(file_exists(public_path($languagePath)))
+                    url: '{{ asset($languagePath) }}'
                     @endif
                 }
             });
