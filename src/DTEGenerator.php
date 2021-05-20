@@ -184,4 +184,21 @@ class DTEGenerator
         ];
         return $mapping[$driver] ?? null;
     }
+
+    public function dom()
+    {
+        $dom = 'Blfrtip';
+        if (in_array('SearchBuilder', $this->config['features'])) {
+            $dom = 'Q' . $dom;
+        }
+        if (in_array('SearchPanes', $this->config['features'])) {
+            $dom = 'P' . $dom;
+        }
+        return $dom;
+    }
+
+    public function languagePath()
+    {
+        return $this->config['languagePath'] ?? null;
+    }
 }

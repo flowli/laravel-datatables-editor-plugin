@@ -8,7 +8,7 @@ use Exception;
 
 abstract class DTEController extends LaravelController
 {
-    protected $editor;
+    protected $editorGenerator;
     protected $editorConfigKey;
     protected $editorViewFile;
     public $editorConfig;
@@ -36,19 +36,13 @@ abstract class DTEController extends LaravelController
             $applyingAssets[$assetType] = DTEAssetsHandler::turnURLsIntoAssets($applyingAssets[$assetType]);
         }
 
-        // determine dom layout
-        $dom = 'Blfrtip';
-        if (in_array('SearchBuilder', $this->editorConfig['features'])) {
-            $dom = 'Q' . $dom;
-        }
-
         // provide the editor view
         return $this->editor->view(
             $this->editorViewFile,
             [
-                'languagePath' => $this->editorConfig['languagePath'] ?? null,
                 'assets' => $applyingAssets,
-                'dom' => $dom
+                'dom' => $this->editor->dom(),
+                'languagePath' => $this->editor->languagePath(),
             ]
         );
     }
