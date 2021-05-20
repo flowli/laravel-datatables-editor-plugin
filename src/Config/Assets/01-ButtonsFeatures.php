@@ -3,7 +3,7 @@
  * Make sure *only* the local+licensed copy of dataTables.editor.min.js is used here (array item == 'dte2/js/dataTables.editor.min.js')
  */
 return [
-    'feature:csv-import' => [
+    'feature:CSVImport' => [
         'js' => [
             '//cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.3/papaparse.min.js',
             'https://code.jquery.com/jquery-3.5.1.js',

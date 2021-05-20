@@ -18,14 +18,17 @@ class DTEAssetsHandler
         foreach ($assetConfigFiles as $assetConfigFile) {
             $conditionalAssetsMap = require($assetConfigDir . DIRECTORY_SEPARATOR . $assetConfigFile);
             // merge applying conditional assets into $assets
-            foreach ($conditionalAssetsMap as $conditionExpression => $condtionallyApplyingAssets) {
+            foreach ($conditionalAssetsMap as $conditionExpression => $conditionallyApplyingAssets) {
                 $conditionResult = self::evaluateAssetCondition($conditionExpression, $instance);
                 if ($conditionResult) {
-                    foreach ($condtionallyApplyingAssets as $assetType => $condtionallyApplyingAsset) {
+                    foreach ($conditionallyApplyingAssets as $assetType => $condtionallyApplyingAsset) {
                         if (!isset($applyingAssets[$assetType])) {
                             $applyingAssets[$assetType] = [];
                         }
-                        $applyingAssets[$assetType] = $condtionallyApplyingAsset + $applyingAssets[$assetType];
+                        $applyingAssets[$assetType] = array_merge(
+                            $applyingAssets[$assetType],
+                            $condtionallyApplyingAsset
+                        );
                     }
                 }
             }
