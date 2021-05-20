@@ -30,21 +30,26 @@ abstract class DTEController extends LaravelController
 
     public function editorView()
     {
-        // load conditional asset config (which assets to load in which order under which condition)…
-        // …and build a list of assets named $applyingAssets
+        // build a two-dimensional asset url array (form: $assets[$type] = $full_urls)
         $applyingAssets = DTEAssetsHandler::determineRequiredAssets($this);
-        // convert asset strings into full urls
         foreach ($applyingAssets as $assetType => $assetStrings) {
             $applyingAssets[$assetType] = DTEAssetsHandler::turnURLsIntoAssets($applyingAssets[$assetType]);
         }
 
+        // determine dom layout
+        $dom = 'Blfrtip';
+        if (in_array('SearchBuilder', $this->editorConfig['features'])) {
+            $dom = 'Q' . $dom;
+        }
+
         // provide the editor view
-        return $this->editor->view($this->editorViewFile, ['assets' => $applyingAssets]);
+        return $this->editor->view(
+            $this->editorViewFile,
+            ['assets' => $applyingAssets, 'dom' => $dom]);
     }
 
     public function editorAPI()
     {
         $this->editor->endpoint();
     }
-
 }

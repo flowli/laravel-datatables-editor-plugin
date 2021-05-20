@@ -56,7 +56,7 @@
             });
 
             $('#{{ $routeName }}').DataTable({
-                dom: "Blfrtip",
+                dom: '{{ $dom }}',
                 ajax: {
                     url: '{{ route($routeName) }}',
                     type: 'POST',
