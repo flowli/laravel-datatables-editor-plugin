@@ -5,7 +5,7 @@
         <link rel="stylesheet" type="text/css" href="{{ $css_url }}"/>
     @endforeach
     @foreach($assets['js'] as $js_url)
-        <script src="{{ $js_url }}"></script>
+        <script src="{{ $js_url }}" defer></script>
     @endforeach
     <style type="text/css">
         .dataTables_length {
@@ -43,7 +43,11 @@
 @section('foot')
     <script class="init">
         let editor;
-        $(document).ready(function () {
+
+        var oldOnload = window.onload;
+        window.onload = function () {
+            oldOnload && oldOnload();
+
             editor = new $.fn.dataTable.Editor({
                 "ajax": {
                     url: "{{ route($routeName) }}",
@@ -76,6 +80,6 @@
                     @endif
                 }
             });
-        });
+        }
     </script>
 @endsection
