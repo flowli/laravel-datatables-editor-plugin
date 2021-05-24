@@ -15,8 +15,8 @@
 
 ### Create a new Editor
 
-1. pick a table name, it will be referred to as *[your-table]* (when dashed notation is recommended)
-   or *[YourTable]* (when CapitalizedWords notation is recommended) in this example
+1. pick a table name, it will be referred to as `[your-table]` (when dashed notation is recommended)
+   or `[YourTable]` (when CapitalizedWords notation is recommended) in this example
 2. create a basic config file `config/dte/[your-table].php` for your DataTables Editor
 
 ```php
