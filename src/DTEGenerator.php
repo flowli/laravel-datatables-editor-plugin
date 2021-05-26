@@ -80,7 +80,11 @@ class DTEGenerator
             $column = [];
             $readFromDatabaseTableColumn = !isset($fieldDetails['use_table_column']) || $fieldDetails['use_table_column'] !== false;
             if ($readFromDatabaseTableColumn) {
+                if (isset($fieldDetails['optionJoin']['foreignLabel'])) {
+                    $fieldName = $fieldDetails['optionJoin']['table'] . '.' . $fieldDetails['optionJoin']['foreignLabel'];
+                }
                 $column['data'] = $fieldName;
+                $column['defaultContent'] = '';
             }
             if (isset($fieldDetails['renderer'])) {
                 $column['render'] = self::JSLiteral($fieldDetails['renderer']);
@@ -126,19 +130,92 @@ class DTEGenerator
      */
     public function endpoint(bool $debug = false)
     {
-        $sql_details = $this->sqlDetails(); // wird von DTE-Backend-Bibliothek benötigt
+        // load database connection details
+        $sql_details = $this->sqlDetails();
         include(public_path() . '/dte2/lib/DataTables.php');
+
+        // create editor
         $editor = Editor::inst($db, $this->config['mainTable']);
+
+        // determine needed joins and fields
+        $leftJoins = [];
         $fields = [];
-        foreach ($this->config['fields'] as $fieldName => $fieldDetails) {
-            if (empty($fieldDetails['type'])) {
+        foreach ($this->config['fields'] as $configFieldId => $configField) {
+            // skip fields without type
+            if (empty($configField['type'])) {
                 continue;
             }
-            $fields[] = Field::inst($fieldName);
+
+            // create DTE field
+            $field = Field::inst($configFieldId);
+
+            /**
+             * TODO: check 👇
+             */
+            // TODO: set default value (if applicable)
+            /*
+            if (isset($configField['insertDefault'])) {
+                $field->setValue($configField['insertDefault'])->set(Field::SET_CREATE);
+            }
+            */
+
+            /**
+             * TODO: set NULL if field value is empty
+             */
+            /*
+            if (isset($configField['nullIfEmpty']) && $configField['nullIfEmpty'] === true) {
+                $field->setFormatter('Format::nullEmpty');
+            }
+            */
+
+            // add left join?
+            if (isset($configField['optionJoin'])) {
+                $join = $configField['optionJoin'];
+
+                // determine join parameters
+                $leftJoins[] = [
+                    $join['table'],
+                    $join['table'] . '.' . $join['tableKey'],
+                    '=',
+                    $this->config['mainTable'] . '.' . $join['foreignKey']
+                ];
+
+                // add join table label field to selection
+                $fields[] = Field::inst($join['table'] . '.' . $join['foreignLabel']);
+
+                // add options to field
+                $field->options($join['table'], $join['tableKey'], $join['foreignLabel']);
+            }
+
+            // add field to editor processor
+            $fields[] = $field;
         }
+
+        // TODO: add condition to database query
+        /*
+        if (isset($formModel['select_conditions']) && is_array($formModel['select_conditions'])) {
+            foreach ($formModel['select_conditions'] as $condition) {
+                list($field, $operator, $value) = $condition;
+                $editor->where($field, $value, $operator);
+            }
+        }
+        */
+
+        // add left joins
+        foreach ($leftJoins as $joinParams) {
+            call_user_func_array(array($editor, 'leftJoin'), $joinParams);
+        }
+
+        // add fields
         $editor->fields($fields);
+
+        // debugging or not?
         $editor->debug($debug);
+
+        // run processor
         $editor->process($_POST);
+
+        // output response
         $editor->json();
     }
 
@@ -188,12 +265,25 @@ class DTEGenerator
     public function dom()
     {
         $dom = 'Blfrtip';
-        if (in_array('SearchBuilder', $this->config['features'])) {
-            $dom = 'Q' . $dom;
+
+        // define feature → letter mapping
+        $dteFeatureToPrependedString = [
+            'SearchBuilder' => 'Q',
+            'SearchPanes' => 'P',
+        ];
+
+        // no feature config? → we're done.
+        if (!array_key_exists('features', $this->config)) {
+            return $dom;
         }
-        if (in_array('SearchPanes', $this->config['features'])) {
-            $dom = 'P' . $dom;
+
+        // check for requestes features and prepend string
+        foreach ($dteFeatureToPrependedString as $featureId => $prependString) {
+            if (in_array($featureId, $this->config['features'])) {
+                $dom = $prependString . $dom;
+            }
         }
+
         return $dom;
     }
 
