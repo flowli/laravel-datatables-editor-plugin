@@ -13,7 +13,7 @@
         }
 
         .dataTables_columnFilter_width {
-            width: 70px;
+            width: 100%;
         }
     </style>
 @endsection
@@ -53,7 +53,7 @@
             oldOnload && oldOnload();
 
             // feature 'individual column search': add text fields
-            $('#{{ $routeName }} thead th').each(function () {
+            $('#{{ $routeName }} tfoot th').each(function () {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="dataTables_columnFilter_width" placeholder="Search ' + title + '" />');
             });
