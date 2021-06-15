@@ -11,6 +11,10 @@
         .dataTables_length {
             margin: 6px 0 0 24px;
         }
+
+        .dataTables_columnFilter_width {
+            width: 70px;
+        }
     </style>
 @endsection
 
@@ -51,7 +55,7 @@
             // feature 'individual column search': add text fields
             $('#{{ $routeName }} tfoot th').each(function () {
                 var title = $(this).text();
-                $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+                $(this).html('<input type="text" class="dataTables_columnFilter_width" placeholder="Search ' + title + '" />');
             });
 
             // initialize editor
