@@ -16,6 +16,18 @@
             width: 100%;
         }
     </style>
+    <script>
+        function delay(callback, ms) {
+            var timer = 0;
+            return function () {
+                var context = this, args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    callback.apply(context, args);
+                }, ms || 0);
+            };
+        }
+    </script>
 @endsection
 
 @section('content')
@@ -95,14 +107,13 @@
                     // feature 'individual column search': apply search
                     this.api().columns().every(function () {
                         var that = this;
-
-                        $('input', this.footer()).on('keyup change clear', function () {
-                            if (that.search() !== this.value) {
-                                that
-                                    .search(this.value)
-                                    .draw();
-                            }
-                        });
+                        $('input', this.footer()).on('keyup change clear',
+                            delay(function (e) {
+                                if (that.search() !== this.value) {
+                                    that.search(this.value).draw();
+                                }
+                            }, 500)
+                        );
                     });
                 }
             });
