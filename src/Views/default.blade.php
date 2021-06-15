@@ -53,7 +53,7 @@
             oldOnload && oldOnload();
 
             // feature 'individual column search': add text fields
-            $('#{{ $routeName }} tfoot th').each(function () {
+            $('#{{ $routeName }} thead th').each(function () {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="dataTables_columnFilter_width" placeholder="Search ' + title + '" />');
             });
