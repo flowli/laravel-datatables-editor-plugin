@@ -48,6 +48,13 @@
         window.onload = function () {
             oldOnload && oldOnload();
 
+            // feature 'individual column search': add text fields
+            $('#{{ $routeName }} tfoot th').each(function () {
+                var title = $(this).text();
+                $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+            });
+
+            // initialize editor
             editor = new $.fn.dataTable.Editor({
                 "ajax": {
                     url: "{{ route($routeName) }}",
@@ -59,6 +66,7 @@
                 "fields": {!! $editorFieldsJSON !!}
             });
 
+            // initialize data table
             $('#{{ $routeName }}').DataTable({
                 dom: '{{ $dom }}',
                 ajax: {
@@ -78,6 +86,20 @@
                     @if(file_exists(public_path($languagePath)))
                     url: '{{ asset($languagePath) }}'
                     @endif
+                },
+                initComplete: function () {
+                    // feature 'individual column search': apply search
+                    this.api().columns().every(function () {
+                        var that = this;
+
+                        $('input', this.footer()).on('keyup change clear', function () {
+                            if (that.search() !== this.value) {
+                                that
+                                    .search(this.value)
+                                    .draw();
+                            }
+                        });
+                    });
                 }
             });
         }
