@@ -27,6 +27,11 @@
                 }, ms || 0);
             };
         }
+
+        function getParam(paramName) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(paramName);
+        }
     </script>
 @endsection
 
@@ -107,6 +112,7 @@
                     url: '{{ asset($languagePath) }}'
                     @endif
                 },
+                search: {search: getParam('find')},
                 initComplete: function () {
                     // feature 'individual column search': apply search
                     this.api().columns().every(function () {
