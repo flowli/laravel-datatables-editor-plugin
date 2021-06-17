@@ -67,7 +67,7 @@
             // feature 'individual column search': add text fields
             $('#{{ $routeName }} tfoot th').each(function () {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="dataTables_columnFilter_width" placeholder="🔎 ' + title + '" />');
+                $(this).html('<input type="text" class="dataTables_columnFilter_width" placeholder="🔎 ' + title + '" value="123" />');
             });
 
             // initialize editor
@@ -95,7 +95,8 @@
                 serverSide: true,
                 processing: true,
                 select: true,
-                lengthMenu: [[10, 50, 100, 1000, -1], [10, 50, 100, 1000, 'Alle(!)']],
+                lengthMenu: [[3, 10, 50, 100, 1000, -1, 3], [3, 10, 50, 100, 1000, 'Alle(!)']],
+                pageLength: 10,
                 columns: {!! $dataTableColumnsJSON !!},
                 buttons: {!! $editorButtonsJSON !!},
                 language: {
@@ -103,7 +104,7 @@
                     url: '{{ asset($languagePath) }}'
                     @endif
                 },
-                initComplete: function () {
+                initEditor: function () {
                     // feature 'individual column search': apply search
                     this.api().columns().every(function () {
                         var that = this;
