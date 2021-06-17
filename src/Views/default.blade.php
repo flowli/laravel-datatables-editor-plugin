@@ -72,7 +72,7 @@
             // feature 'individual column search': add text fields
             $('#{{ $routeName }} tfoot th').each(function () {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="dataTables_columnFilter_width" placeholder="🔎 ' + title + '" value="123" />');
+                $(this).html('<input type="text" class="dataTables_columnFilter_width" placeholder="🔎 ' + title + '" />');
             });
 
             // initialize editor
