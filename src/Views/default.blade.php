@@ -83,6 +83,8 @@
             });
 
             // initialize data table
+            var pageLength = Cookie.get('dataTablePageLength');
+
             $('#{{ $routeName }}').DataTable({
                 dom: '{{ $dom }}',
                 ajax: {

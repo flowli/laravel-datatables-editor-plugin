@@ -18,6 +18,7 @@ return [
             'https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js',
             'https://cdn.datatables.net/datetime/1.0.3/js/dataTables.dateTime.min.js',
             '../../extensions/Editor/js/dataTables.editor.min.js',
+            'https://raw.githubusercontent.com/flowli/laravel-datatables-editor-plugin/master/assets/js/js.cookie-2.2.1.min.js',
         ],
     ]
 ];
