@@ -83,7 +83,8 @@
             });
 
             // initialize data table
-            var pageLength = Cookie.get('dataTablePageLength');
+            const pageLength = Cookies.get('pageLengthCookieKey');
+            const dataTablePageLength = pageLength || 10;
 
             $('#{{ $routeName }}').DataTable({
                 dom: '{{ $dom }}',
@@ -98,7 +99,7 @@
                 processing: true,
                 select: true,
                 lengthMenu: [[3, 10, 50, 100, 1000, -1, 3], [3, 10, 50, 100, 1000, 'Alle(!)']],
-                pageLength: 10,
+                pageLength: dataTablePageLength,
                 columns: {!! $dataTableColumnsJSON !!},
                 buttons: {!! $editorButtonsJSON !!},
                 language: {
@@ -106,7 +107,7 @@
                     url: '{{ asset($languagePath) }}'
                     @endif
                 },
-                initEditor: function () {
+                initComplete: function () {
                     // feature 'individual column search': apply search
                     this.api().columns().every(function () {
                         var that = this;
@@ -119,6 +120,11 @@
                         );
                     });
                 }
+            });
+
+            // remember page length for next datatable init
+            $('#{{ $routeName }}').on('length.dt', function (e, settings, len) {
+                Cookies.set('pageLengthCookieKey', len);
             });
         }
     </script>
