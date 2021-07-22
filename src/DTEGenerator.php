@@ -110,10 +110,54 @@ class DTEGenerator
             ];
             if (isset($fieldDetails['options'])) {
                 $editorField['options'] = $fieldDetails['options'];
+            } elseif (isset($fieldDetails['optionQuery'])) {
+                $editorField['options'] = $this->getOptionsByQuery($fieldDetails['optionQuery']);
             }
             $editorFields[] = $editorField;
         }
         return $this->jsonWithLiterals($editorFields);
+    }
+
+    protected function getOptionsByQuery($optionQuery)
+    {
+        ob_start();
+        $data = $this
+            ->getEditorInst($optionQuery['table'])
+            ->fields(
+                Field::inst($optionQuery['keyColumn']),
+                Field::inst($optionQuery['labelColumn'])
+            )->process([
+                'draw' => 1,
+                'columns' => [
+                    [
+                        'data' => $optionQuery['keyColumn'],
+                        'name' => 'keyColumn',
+                        'search' => ['value' => '']
+                    ],
+                    [
+                        'data' => $optionQuery['labelColumn'],
+                        'name' => 'labelColumn',
+                        'search' => ['value' => '']
+                    ]
+                ],
+                'order' => [
+                    ['column' => 0, 'dir' => 'asc']
+                ],
+                'start' => 0,
+                'search' => [
+                    'value' => false
+                ],
+                'length' => 10
+            ])
+            ->json();
+        $optionResult = json_decode(ob_get_contents());
+
+        $options = [];
+        foreach ($optionResult->data as $row) {
+            $options[$row->{$optionQuery['labelColumn']}] = $row->{$optionQuery['keyColumn']};
+        }
+        ob_end_clean();
+        return $options;
     }
 
     protected function jsonWithLiterals($input)
@@ -123,6 +167,19 @@ class DTEGenerator
         return $json;
     }
 
+    public function getEditorInst($table)
+    {
+        // load database connection details
+        $sql_details = $this->sqlDetails();
+
+        // bootstrap DataTables
+        include_once(public_path() . '/dte2/lib/DataTables.php');
+
+        // create editor
+        $editor = Editor::inst($db, $table);
+        return $editor;
+    }
+
     /**
      * Builds Editor instance and processes data coming from _POST
      * @param bool $debug
@@ -130,12 +187,8 @@ class DTEGenerator
      */
     public function endpoint(bool $debug = false)
     {
-        // load database connection details
-        $sql_details = $this->sqlDetails();
-        include(public_path() . '/dte2/lib/DataTables.php');
-
         // create editor
-        $editor = Editor::inst($db, $this->config['mainTable']);
+        $editor = $this->getEditorInst($this->config['mainTable']);
 
         // determine needed joins and fields
         $leftJoins = [];
