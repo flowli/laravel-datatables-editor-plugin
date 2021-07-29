@@ -2,11 +2,17 @@
 
 namespace arweb\DataTablesEditor;
 
-use Config;
-use DataTables\Editor;
-use DataTables\Editor\Field;
-use Exception;
-use stdClass;
+use Exception,
+    stdClass,
+    Config,
+    DataTables\Editor,
+    DataTables\Editor\Field,
+    DataTables\Editor\Format,
+    DataTables\Editor\Mjoin,
+    DataTables\Editor\Options,
+    DataTables\Editor\Upload,
+    DataTables\Editor\Validate,
+    DataTables\Editor\ValidateOptions;
 
 class DTEGenerator
 {
@@ -86,6 +92,14 @@ class DTEGenerator
                 $column['data'] = $fieldName;
                 $column['defaultContent'] = '';
             }
+
+            // mjoin array-type field using […]-syntax? render label field separated by ', '.
+            if (preg_match('/\[/', $fieldName) && !empty($fieldDetails['optionCrossJoin'])) {
+                $join = $fieldDetails['optionCrossJoin'];
+                $column['render'] = '[, ].' . $join['targetLabelField'];
+                $column['data'] = $join['targetTable'];
+            }
+
             if (isset($fieldDetails['renderer'])) {
                 $column['render'] = self::JSLiteral($fieldDetails['renderer']);
             }
@@ -185,13 +199,14 @@ class DTEGenerator
      * @param bool $debug
      * @throws Exception
      */
-    public function endpoint(bool $debug = false)
+    public function endpoint(bool $debug = true)
     {
         // create editor
         $editor = $this->getEditorInst($this->config['mainTable']);
 
         // determine needed joins and fields
         $leftJoins = [];
+        $joins = [];
         $fields = [];
         foreach ($this->config['fields'] as $configFieldId => $configField) {
             // skip fields without type
@@ -221,7 +236,7 @@ class DTEGenerator
             }
             */
 
-            // add left join?
+            // is feature 'option join' configured?
             if (isset($configField['optionJoin'])) {
                 $join = $configField['optionJoin'];
 
@@ -240,8 +255,37 @@ class DTEGenerator
                 $field->options($join['table'], $join['tableKey'], $join['foreignLabel']);
             }
 
+            // is feature 'cross table option join' configured?
+            if (isset($configField['optionCrossJoin'])) {
+                $join = $configField['optionCrossJoin'];
+
+                // multi-join
+                $local_cross_link_local_field = $this->config['mainTable'] . '.' . $join['localTableKey'];
+                $local_cross_link_cross_field = $join['crossTable'] . '.' . $join['crossToLocalTableKey'];
+                $cross_target_link_target_field = $join['targetTable'] . '.' . $join['targetToCrossKey'];
+                $cross_target_link_cross_field = $join['crossTable'] . '.' . $join['crossToTargetTableKey'];
+
+                $joins[] = Mjoin::inst($join['targetTable'])
+                    ->link($local_cross_link_local_field, $local_cross_link_cross_field)
+                    ->link($cross_target_link_target_field, $cross_target_link_cross_field)
+                    ->order($join['targetLabelField'] . ' asc')
+                    //->validator('roles[].id', Validate::mjoinMaxCount(4, 'No more than four selections please'))
+                    ->fields(
+                        Field::inst($join['targetToCrossKey'])
+                            ->validator(Validate::required())
+                            ->options(Options::inst()
+                                ->table($join['targetTable'])
+                                ->value($join['targetToCrossKey'])
+                                ->label($join['targetLabelField'])
+                            ),
+                        Field::inst($join['targetLabelField'])
+                    );
+            }
+
             // add field to editor processor
-            $fields[] = $field;
+            if (!isset($configField['optionCrossJoin'])) {
+                $fields[] = $field;
+            }
         }
 
         // TODO: add condition to database query
@@ -254,9 +298,14 @@ class DTEGenerator
         }
         */
 
-        // add left joins
+        // add left joins for foreign key single-option selects
         foreach ($leftJoins as $joinParams) {
             call_user_func_array(array($editor, 'leftJoin'), $joinParams);
+        }
+
+        // add joins for cross-table multi-selects
+        foreach ($joins as $join) {
+            $editor->join($join);
         }
 
         // add fields
