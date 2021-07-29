@@ -199,7 +199,7 @@ class DTEGenerator
      * @param bool $debug
      * @throws Exception
      */
-    public function endpoint(bool $debug = true)
+    public function endpoint(bool $debug = false)
     {
         // create editor
         $editor = $this->getEditorInst($this->config['mainTable']);
