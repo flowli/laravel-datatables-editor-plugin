@@ -82,57 +82,72 @@ class DTEGenerator
     protected function dataTableColumnsJSON()
     {
         $columns = [];
-        foreach ($this->config['fields'] as $fieldName => $fieldDetails) {
+        foreach ($this->config['fields'] as $columnName => $columnConfig) {
             $column = [];
-            $readFromDatabaseTableColumn = !isset($fieldDetails['use_table_column']) || $fieldDetails['use_table_column'] !== false;
+            $readFromDatabaseTableColumn = !isset($columnConfig['use_table_column']) || $columnConfig['use_table_column'] !== false;
             if ($readFromDatabaseTableColumn) {
-                if (isset($fieldDetails['optionJoin']['foreignLabel'])) {
-                    $fieldName = $fieldDetails['optionJoin']['table'] . '.' . $fieldDetails['optionJoin']['foreignLabel'];
+                if (isset($columnConfig['optionJoin']['foreignLabel'])) {
+                    $columnName = $columnConfig['optionJoin']['table'] . '.' . $columnConfig['optionJoin']['foreignLabel'];
                 }
-                $column['data'] = $fieldName;
-                $column['defaultContent'] = '';
+                $column['data'] = $columnName;
             }
 
             // mjoin array-type field using […]-syntax? render label field separated by ', '.
-            if (preg_match('/\[/', $fieldName) && !empty($fieldDetails['optionCrossJoin'])) {
-                $join = $fieldDetails['optionCrossJoin'];
+            if (preg_match('/\[/', $columnName) && !empty($columnConfig['optionCrossJoin'])) {
+                $join = $columnConfig['optionCrossJoin'];
                 $column['render'] = '[, ].' . $join['targetLabelField'];
                 $column['data'] = $join['targetTable'];
+                // DTE does currently not support Mjoin server-side search & sort.
+                //   Hence, disable those features for this column.
+                $column['sortable'] = false;
+                $column['searchable'] = false;
             }
 
-            if (isset($fieldDetails['renderer'])) {
-                $column['render'] = self::JSLiteral($fieldDetails['renderer']);
+            if (isset($columnConfig['renderer'])) {
+                $column['render'] = self::JSLiteral($columnConfig['renderer']);
             }
             $columns[] = $column;
         }
-        $jsonWithLiterals = $this->jsonWithLiterals($columns);
-        return $jsonWithLiterals;
+
+        $columns = $this->jsonWithLiterals($columns);
+        return $columns;
     }
 
     protected function editorFieldsJSON()
     {
-        $editorFields = [];
-        foreach ($this->config['fields'] as $fieldName => $fieldDetails) {
-            if (empty($fieldDetails['type'])) {
+        $fields = [];
+        foreach ($this->config['fields'] as $fieldName => $fieldConfig) {
+            if (empty($fieldConfig['type'])) {
                 continue;
             }
-            $fieldLabel = !empty($fieldDetails['label']) ? $fieldDetails['label'] : $fieldName;
-            $editorField = [
+            $fieldLabel = !empty($fieldConfig['label']) ? $fieldConfig['label'] : $fieldName;
+            $field = [
                 'label' => $fieldLabel,
                 'name' => $fieldName,
-                'type' => $fieldDetails['type'],
+                'type' => $fieldConfig['type'],
             ];
-            if ($fieldDetails['type'] === 'datetime') {
-                $editorField['format'] = !empty($fieldDetails['format']) ? $fieldDetails['format'] : 'YYYY-MM-DD HH:mm:SS';
+
+            // datetime field: default format
+            if ($fieldConfig['type'] === 'datetime') {
+                $field['format'] = !empty($fieldConfig['format']) ? $fieldConfig['format'] : 'YYYY-MM-DD HH:mm:SS';
             }
-            if (isset($fieldDetails['options'])) {
-                $editorField['options'] = $fieldDetails['options'];
-            } elseif (isset($fieldDetails['optionQuery'])) {
-                $editorField['options'] = $this->getOptionsByQuery($fieldDetails['optionQuery']);
+
+            // option source: static list or dynamic from database?
+            if (isset($fieldConfig['options'])) {
+                $field['options'] = $fieldConfig['options'];
+            } elseif (isset($fieldConfig['optionQuery'])) {
+                $field['options'] = $this->getOptionsByQuery($fieldConfig['optionQuery']);
             }
-            $editorFields[] = $editorField;
+
+            // enable multi-select for all cross joins
+            if (isset($fieldConfig['optionCrossJoin'])) {
+                $field['multiple'] = true;
+            }
+
+            $fields[] = $field;
         }
-        return $this->jsonWithLiterals($editorFields);
+        $fields = $this->jsonWithLiterals($fields);
+        return $fields;
     }
 
     protected function getOptionsByQuery($optionQuery)
@@ -221,7 +236,7 @@ class DTEGenerator
             $field = Field::inst($configFieldId);
 
             /**
-             * TODO: check 👇
+             * TODO @feature: make setting a default value configurable
              */
             // TODO: set default value (if applicable)
             /*
@@ -231,7 +246,7 @@ class DTEGenerator
             */
 
             /**
-             * TODO: set NULL if field value is empty
+             * TODO @feature: make setting NULL if field value is empty configurable
              */
             /*
             if (isset($configField['nullIfEmpty']) && $configField['nullIfEmpty'] === true) {
