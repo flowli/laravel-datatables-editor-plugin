@@ -122,6 +122,9 @@ class DTEGenerator
                 'name' => $fieldName,
                 'type' => $fieldDetails['type'],
             ];
+            if ($fieldDetails['type'] === 'datetime') {
+                $editorField['format'] = !empty($fieldDetails['format']) ? $fieldDetails['format'] : 'YYYY-MM-DD HH:mm:SS';
+            }
             if (isset($fieldDetails['options'])) {
                 $editorField['options'] = $fieldDetails['options'];
             } elseif (isset($fieldDetails['optionQuery'])) {
