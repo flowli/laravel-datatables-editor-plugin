@@ -144,6 +144,11 @@ class DTEGenerator
                 $field['multiple'] = true;
             }
 
+            // field.submit
+            if (isset($fieldConfig['submit'])) {
+                $field['submit'] = $fieldConfig['submit'] !== false;
+            }
+
             $fields[] = $field;
         }
         $fields = $this->jsonWithLiterals($fields);
@@ -212,6 +217,16 @@ class DTEGenerator
         return $editor;
     }
 
+    protected function dteLeftJoin($config, $join)
+    {
+        return [
+            $join['table'],
+            $join['table'] . '.' . $join['tableKey'],
+            '=',
+            $this->config['mainTable'] . '.' . $join['foreignKey']
+        ];
+    }
+
     /**
      * Builds Editor instance and processes data coming from _POST
      * @param bool $debug
@@ -226,6 +241,15 @@ class DTEGenerator
         $leftJoins = [];
         $joins = [];
         $fields = [];
+
+        // add left joins
+        if (!empty($this->config['leftJoins']) && is_array($this->config['leftJoins'])) {
+            foreach ($this->config['leftJoins'] as $table => $join) {
+                $leftJoins[] = $this->dteLeftJoin($this->config, $join);
+            }
+        }
+
+        // add fields
         foreach ($this->config['fields'] as $configFieldId => $configField) {
             // skip fields without type
             if (empty($configField['type'])) {
@@ -259,12 +283,7 @@ class DTEGenerator
                 $join = $configField['optionJoin'];
 
                 // determine join parameters
-                $leftJoins[] = [
-                    $join['table'],
-                    $join['table'] . '.' . $join['tableKey'],
-                    '=',
-                    $this->config['mainTable'] . '.' . $join['foreignKey']
-                ];
+                $leftJoins[] = $this->dteLeftJoin($config, $join);
 
                 // add join table label field to selection
                 $fields[] = Field::inst($join['table'] . '.' . $join['foreignLabel']);
