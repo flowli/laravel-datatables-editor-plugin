@@ -103,6 +103,12 @@
                 serverSide: true,
                 processing: true,
                 select: true,
+                @if(isset($dataTable['scrollX']))
+                scrollX: {{ json_encode(boolval($dataTable['scrollX'])) }},
+                @endif
+                    @if(isset($dataTable['scrollY']))
+                scrollY: {{ json_encode(intval($dataTable['scrollY'])) }},
+                @endif
                 lengthMenu: [[3, 10, 50, 100, 1000, -1, 3], [3, 10, 50, 100, 1000, 'Alle(!)']],
                 pageLength: dataTablePageLength,
                 columns: {!! $dataTableColumnsJSON !!},
