@@ -219,11 +219,12 @@ class DTEGenerator
 
     protected function dteLeftJoin($config, $join)
     {
+        $table = empty($join['baseTable']) ? $this->config['mainTable'] : $join['baseTable'];
         return [
             $join['table'],
             $join['table'] . '.' . $join['tableKey'],
             '=',
-            $this->config['mainTable'] . '.' . $join['foreignKey']
+            $table . '.' . $join['foreignKey']
         ];
     }
 
@@ -283,7 +284,7 @@ class DTEGenerator
                 $join = $configField['optionJoin'];
 
                 // determine join parameters
-                $leftJoins[] = $this->dteLeftJoin($config, $join);
+                $leftJoins[] = $this->dteLeftJoin($this->config, $join);
 
                 // add join table label field to selection
                 $fields[] = Field::inst($join['table'] . '.' . $join['foreignLabel']);
