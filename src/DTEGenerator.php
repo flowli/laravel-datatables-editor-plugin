@@ -121,6 +121,11 @@ class DTEGenerator
                 continue;
             }
             $fieldLabel = !empty($fieldConfig['label']) ? $fieldConfig['label'] : $fieldName;
+            if (isset($this->config['ux']['fields']['noSubmitFieldLabelSuffix'])
+                && isset($fieldConfig['submit']) && $fieldConfig['submit'] === false) {
+                $fieldLabel .= $this->config['ux']['fields']['noSubmitFieldLabelSuffix'];
+            }
+
             $field = [
                 'label' => $fieldLabel,
                 'name' => $fieldName,
