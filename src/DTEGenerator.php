@@ -172,7 +172,7 @@ class DTEGenerator
     {
         ob_start();
         $data = $this
-            ->getEditorInst($optionQuery['table'])
+            ->getEditorTableInstance($optionQuery['table'])
             ->fields(
                 Field::inst($optionQuery['keyColumn']),
                 Field::inst($optionQuery['labelColumn'])
@@ -217,7 +217,7 @@ class DTEGenerator
         return $json;
     }
 
-    public function getEditorInst($table)
+    public function getEditorTableInstance($table)
     {
         // load database connection details
         $sql_details = $this->sqlDetails();
@@ -226,11 +226,10 @@ class DTEGenerator
         include_once(public_path() . '/dte2/lib/DataTables.php');
 
         // create editor
-        $editor = Editor::inst($db, $table);
-        return $editor;
+        return Editor::inst($db, $table);
     }
 
-    protected function dteLeftJoin($config, $join)
+    protected function getDTELeftJoinFromConfig($config, $join)
     {
         $table = empty($join['baseTable']) ? $this->config['mainTable'] : $join['baseTable'];
         return [
@@ -241,25 +240,21 @@ class DTEGenerator
         ];
     }
 
-    /**
-     * Builds Editor instance and processes data coming from _POST
-     * @param bool $debug
-     * @throws Exception
-     */
-    public function endpoint(bool $debug = false)
+    protected function getFullyConfiguredTableEditorInstance($fieldConditions = [])
     {
         // create editor
-        $editor = $this->getEditorInst($this->config['mainTable']);
+        $editor = $this->getEditorTableInstance($this->config['mainTable']);
 
         // determine needed joins and fields
         $leftJoins = [];
         $joins = [];
         $fields = [];
 
+
         // add left joins
         if (!empty($this->config['leftJoins']) && is_array($this->config['leftJoins'])) {
             foreach ($this->config['leftJoins'] as $table => $join) {
-                $leftJoins[] = $this->dteLeftJoin($this->config, $join);
+                $leftJoins[] = $this->getDTELeftJoinFromConfig($this->config, $join);
             }
         }
 
@@ -268,6 +263,20 @@ class DTEGenerator
             // skip fields without type
             if (empty($configField['type'])) {
                 continue;
+            }
+            // are there field conditions?
+            if (!empty($fieldConditions) && is_array($fieldConditions)) {
+                // check them all
+                foreach ($fieldConditions as $conditionField => $conditionValue) {
+                    // skip if field does not exist
+                    if (!isset($configField[$conditionField])) {
+                        continue 2;
+                    }
+                    // skip if field value does not match condition
+                    if ($configField[$conditionField] != $conditionValue) {
+                        continue 2;
+                    }
+                }
             }
 
             // create DTE field
@@ -297,7 +306,7 @@ class DTEGenerator
                 $join = $configField['optionJoin'];
 
                 // determine join parameters
-                $leftJoins[] = $this->dteLeftJoin($this->config, $join);
+                $leftJoins[] = $this->getDTELeftJoinFromConfig($this->config, $join);
 
                 // add join table label field to selection
                 $fields[] = Field::inst($join['table'] . '.' . $join['foreignLabel']);
@@ -362,13 +371,29 @@ class DTEGenerator
         // add fields
         $editor->fields($fields);
 
-        // debugging or not?
-        $editor->debug($debug);
+        return $editor;
+    }
 
-        // run processor
+    /**
+     * Provides the data as produced by DTE backend
+     */
+    public function data($fieldsConditions = [])
+    {
+        $editor = $this->getFullyConfiguredTableEditorInstance($fieldsConditions);
+        $editor->process(null);
+        $data = $editor->data();
+        return !empty($data['data']) ? $data['data'] : [];
+    }
+
+    /**
+     * Builds Editor instance and processes data coming from _POST
+     * @param bool $debug
+     * @throws Exception
+     */
+    public function endpoint()
+    {
+        $editor = $this->getFullyConfiguredTableEditorInstance();
         $editor->process($_POST);
-
-        // output response
         $editor->json();
     }
 

@@ -28,6 +28,11 @@ abstract class DTEController extends LaravelController
         $this->editor = new DTEGenerator($this->editorConfig);
     }
 
+    public function data($fieldsConditions = [])
+    {
+        return $this->editor->data($fieldsConditions);
+    }
+
     public function editorView()
     {
         // build a two-dimensional asset url array (form: $assets[$type] = $full_urls)
