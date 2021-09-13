@@ -61,10 +61,15 @@ class DTEGenerator
             switch ($buttonType) {
                 case 'extend':
                     $extendType = $buttonDefinitionParts[1];
-                    $buttons[] = [
+                    $button = [
                         'extend' => $extendType,
                         'editor' => self::JSLiteral('editor'),
                     ];
+                    $customButtonText = !empty($buttonDefinitionParts[2]) ? $buttonDefinitionParts[2] : null;
+                    if (isset($customButtonText)) {
+                        $button['text'] = $customButtonText;
+                    }
+                    $buttons[] = $button;
                     break;
                 case 'custom':
                     $customButtonText = $buttonDefinitionParts[1];
