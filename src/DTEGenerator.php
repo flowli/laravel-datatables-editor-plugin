@@ -43,6 +43,40 @@ class DTEGenerator
         return $o;
     }
 
+    protected function dataTableColumnsJSON()
+    {
+        $columns = [];
+        foreach ($this->config['fields'] as $columnName => $columnConfig) {
+            $column = [];
+            $readFromDatabaseTableColumn = !isset($columnConfig['use_table_column']) || $columnConfig['use_table_column'] !== false;
+            if ($readFromDatabaseTableColumn) {
+                if (isset($columnConfig['optionJoin']['foreignLabel'])) {
+                    $columnName = $columnConfig['optionJoin']['table'] . '.' . $columnConfig['optionJoin']['foreignLabel'];
+                }
+                $column['data'] = $columnName;
+            }
+
+            // mjoin array-type field using […]-syntax? render label field separated by ', '.
+            if (preg_match('/\[/', $columnName) && !empty($columnConfig['optionCrossJoin'])) {
+                $join = $columnConfig['optionCrossJoin'];
+                $column['render'] = '[, ].' . $join['targetLabelField'];
+                $column['data'] = $join['targetTable'];
+                // DTE does currently not support Mjoin server-side search & sort.
+                //   Hence, disable those features for this column.
+                $column['sortable'] = false;
+                $column['searchable'] = false;
+            }
+
+            if (isset($columnConfig['renderer'])) {
+                $column['render'] = self::JSLiteral($columnConfig['renderer']);
+            }
+            $columns[] = $column;
+        }
+
+        $columns = $this->jsonWithLiterals($columns);
+        return $columns;
+    }
+
     protected function editorButtonsJSON()
     {
         // default: 3 buttons
@@ -84,45 +118,14 @@ class DTEGenerator
         return $this->jsonWithLiterals($buttons);
     }
 
-    protected function dataTableColumnsJSON()
-    {
-        $columns = [];
-        foreach ($this->config['fields'] as $columnName => $columnConfig) {
-            $column = [];
-            $readFromDatabaseTableColumn = !isset($columnConfig['use_table_column']) || $columnConfig['use_table_column'] !== false;
-            if ($readFromDatabaseTableColumn) {
-                if (isset($columnConfig['optionJoin']['foreignLabel'])) {
-                    $columnName = $columnConfig['optionJoin']['table'] . '.' . $columnConfig['optionJoin']['foreignLabel'];
-                }
-                $column['data'] = $columnName;
-            }
-
-            // mjoin array-type field using […]-syntax? render label field separated by ', '.
-            if (preg_match('/\[/', $columnName) && !empty($columnConfig['optionCrossJoin'])) {
-                $join = $columnConfig['optionCrossJoin'];
-                $column['render'] = '[, ].' . $join['targetLabelField'];
-                $column['data'] = $join['targetTable'];
-                // DTE does currently not support Mjoin server-side search & sort.
-                //   Hence, disable those features for this column.
-                $column['sortable'] = false;
-                $column['searchable'] = false;
-            }
-
-            if (isset($columnConfig['renderer'])) {
-                $column['render'] = self::JSLiteral($columnConfig['renderer']);
-            }
-            $columns[] = $column;
-        }
-
-        $columns = $this->jsonWithLiterals($columns);
-        return $columns;
-    }
-
     protected function editorFieldsJSON()
     {
         $fields = [];
         foreach ($this->config['fields'] as $fieldName => $fieldConfig) {
             if (empty($fieldConfig['type'])) {
+                continue;
+            }
+            if (isset($fieldConfig['editor']) && $fieldConfig['editor'] === false) {
                 continue;
             }
             $fieldLabel = !empty($fieldConfig['label']) ? $fieldConfig['label'] : $fieldName;
