@@ -393,6 +393,12 @@ class DTEGenerator
     public function endpoint()
     {
         $editor = $this->getFullyConfiguredTableEditorInstance();
+
+        // configurable: run closure that can modify $_POST
+        if (is_callable($this->config['hooks']['endpointBeforeSave'])) {
+            $_POST = call_user_func($this->config['hooks']['endpointBeforeSave'], $_POST);
+        }
+
         $editor->process($_POST);
         $editor->json();
     }
