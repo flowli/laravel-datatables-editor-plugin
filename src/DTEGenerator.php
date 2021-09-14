@@ -395,7 +395,7 @@ class DTEGenerator
         $editor = $this->getFullyConfiguredTableEditorInstance();
 
         // configurable: run closure that can modify $_POST
-        if (is_callable($this->config['hooks']['endpointBeforeSave'])) {
+        if (isset($this->config['hooks']['endpointBeforeSave']) && is_callable($this->config['hooks']['endpointBeforeSave'])) {
             $_POST = call_user_func($this->config['hooks']['endpointBeforeSave'], $_POST);
         }
 
