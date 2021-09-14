@@ -56,4 +56,88 @@ abstract class DTEController extends LaravelController
     {
         $this->editor->endpoint();
     }
+
+    /**
+     * Display or provide a CSV-formatted download of DataTable columns (matching given field conditions)
+     * @param array $fieldsConditions
+     * @param $filename
+     * @param false $download
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    protected function csvStream($fieldsConditions = [], $filename, $download = false)
+    {
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+        if ($download) {
+            $headers['Content-Disposition'] = "attachment; filename=$filename";
+        }
+
+        return response()->stream(function () use ($fieldsConditions) {
+            $rows = $this->flattenedData($fieldsConditions);
+            $file = fopen('php://output', 'w');
+            foreach ($rows as $row) {
+                fputcsv($file, $row, ';');
+            }
+            fclose($file);
+        }, 200, $headers);
+    }
+
+    /**
+     * Takes DataTables data() and makes it a two-dimensional array of rows and columns
+     * @param array $fieldsConditions
+     * @param bool $includeHeaderRow
+     * @return array|array[]
+     */
+    protected function flattenedData($fieldsConditions = [], $includeHeaderRow = true, $limit = null)
+    {
+        $data = $this->data($fieldsConditions);
+        if (isset($limit) && $limit > 0) {
+            $data = array_slice($data, 0, $limit);
+        }
+        if (count($data) === 0) {
+            return [];
+        } else {
+            $firstRow = $data[0];
+        }
+        $rows = [];
+        if ($includeHeaderRow) {
+            $rows[] = $this->getDataColumnNames($firstRow, true);
+        }
+        foreach ($data as $obj) {
+            $rows[] = $this->getDataRowValues($obj);
+        }
+        return $rows;
+    }
+
+    protected function getDataColumnNames($row, $addTableName = false)
+    {
+        $columnNames = [];
+        foreach ($row as $tableName => $table) {
+            if (!is_array($table)) {
+                continue;
+            }
+            foreach ($table as $col => $val) {
+                $columnNames[] = $addTableName ? $tableName . '.' . $col : $col;
+            }
+        }
+        return $columnNames;
+    }
+
+    protected function getDataRowValues($dataset)
+    {
+        $row = [];
+        foreach ($dataset as $key => $table) {
+            if (!is_array($table)) {
+                continue;
+            }
+            foreach ($table as $col => $val) {
+                $row[] = $val;
+            }
+        }
+        return $row;
+    }
 }
