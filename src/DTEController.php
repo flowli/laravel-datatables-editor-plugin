@@ -62,22 +62,33 @@ abstract class DTEController extends LaravelController
      * @param array $fieldsConditions
      * @param $filename
      * @param false $download
+     * @param callable $beforeOutputHook Takes $rows, can manipulate them and should return them
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    protected function csvStream($fieldsConditions = [], $filename, $download = false)
-    {
-        $headers = [
-            'Content-type' => 'text/csv',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-        ];
-        if ($download) {
-            $headers['Content-Disposition'] = "attachment; filename=$filename";
+    protected function csvStream(
+        $fieldsConditions = [],
+        $filename,
+        $beforeOutputHook = null,
+        $debug = false
+    ) {
+        if ($debug === false) {
+            $headers = [
+                'Content-type' => $debug ? 'test/html' : 'text/csv',
+                'Pragma' => 'no-cache',
+                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires' => '0',
+                'Content-Disposition' => "attachment; filename=$filename",
+            ];
+        } else {
+            $headers = [];
         }
 
-        return response()->stream(function () use ($fieldsConditions) {
+
+        return response()->stream(function () use ($fieldsConditions, $beforeOutputHook) {
             $rows = $this->flattenedData($fieldsConditions);
+            if (isset($beforeOutputHook) && is_callable($beforeOutputHook)) {
+                $rows = call_user_func($beforeOutputHook, $rows);
+            }
             $file = fopen('php://output', 'w');
             foreach ($rows as $row) {
                 fputcsv($file, $row, ';');
