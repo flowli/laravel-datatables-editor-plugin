@@ -28,9 +28,9 @@ abstract class DTEController extends LaravelController
         $this->editor = new DTEGenerator($this->editorConfig);
     }
 
-    public function data($fieldsConditions = [])
+    public function data($fieldsConditions = [], $processData = null)
     {
-        return $this->editor->data($fieldsConditions);
+        return $this->editor->data($fieldsConditions, $processData);
     }
 
     public function editorView()
@@ -63,12 +63,14 @@ abstract class DTEController extends LaravelController
      * @param $filename
      * @param false $download
      * @param callable $beforeOutputHook Takes $rows, can manipulate them and should return them
+     * @params array $processData Will be forwarded to Editor->process(…) and processed like $_POST vars
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
     protected function csvStream(
         $fieldsConditions = [],
         $filename,
         $beforeOutputHook = null,
+        $processData = null,
         $debug = false
     ) {
         if ($debug === false) {
@@ -83,9 +85,16 @@ abstract class DTEController extends LaravelController
             $headers = [];
         }
 
+        if ($debug) {
+            $rows = $this->flattenedData($fieldsConditions, $processData);
+            if (isset($beforeOutputHook) && is_callable($beforeOutputHook)) {
+                $rows = call_user_func($beforeOutputHook, $rows);
+            }
+            dd($rows);
+        }
 
-        return response()->stream(function () use ($fieldsConditions, $beforeOutputHook) {
-            $rows = $this->flattenedData($fieldsConditions);
+        return response()->stream(function () use ($fieldsConditions, $beforeOutputHook, $processData) {
+            $rows = $this->flattenedData($fieldsConditions, $processData);
             if (isset($beforeOutputHook) && is_callable($beforeOutputHook)) {
                 $rows = call_user_func($beforeOutputHook, $rows);
             }
@@ -103,9 +112,13 @@ abstract class DTEController extends LaravelController
      * @param bool $includeHeaderRow
      * @return array|array[]
      */
-    protected function flattenedData($fieldsConditions = [], $includeHeaderRow = true, $limit = null)
-    {
-        $data = $this->data($fieldsConditions);
+    protected function flattenedData(
+        $fieldsConditions = [],
+        $processData = null,
+        $includeHeaderRow = true,
+        $limit = null
+    ) {
+        $data = $this->data($fieldsConditions, $processData);
         if (isset($limit) && $limit > 0) {
             $data = array_slice($data, 0, $limit);
         }

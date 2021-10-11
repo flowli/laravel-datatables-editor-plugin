@@ -377,10 +377,10 @@ class DTEGenerator
     /**
      * Provides the data as produced by DTE backend
      */
-    public function data($fieldsConditions = [])
+    public function data($fieldsConditions = [], $processData = null)
     {
         $editor = $this->getFullyConfiguredTableEditorInstance($fieldsConditions);
-        $editor->process(null);
+        $editor->process($processData);
         $data = $editor->data();
         return !empty($data['data']) ? $data['data'] : [];
     }
