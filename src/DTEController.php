@@ -58,45 +58,68 @@ abstract class DTEController extends LaravelController
     }
 
     /**
-     * Display or provide a CSV-formatted download of DataTable columns (matching given field conditions)
+     * Writes CSV export to file
+     *
+     * @param $targetFilePath
      * @param array $fieldsConditions
      * @param $filename
-     * @param false $download
-     * @param callable $beforeOutputHook Takes $rows, can manipulate them and should return them
-     * @params array $processData Will be forwarded to Editor->process(…) and processed like $_POST vars
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @param null $beforeOutputHook
+     * @param null $processData
+     * @param false $debug
      */
-    protected function csvStream(
+    public function writeCSVToFile(
+        $targetFilePath,
         $fieldsConditions = [],
-        $filename,
         $beforeOutputHook = null,
+        $beforeOutputHookParam = null,
         $processData = null,
         $debug = false
     ) {
-        if ($debug === false) {
-            $headers = [
-                'Content-type' => $debug ? 'test/html' : 'text/csv',
-                'Pragma' => 'no-cache',
-                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires' => '0',
-                'Content-Disposition' => "attachment; filename=$filename",
-            ];
-        } else {
-            $headers = [];
+        $rows = $this->flattenedData($fieldsConditions, $processData);
+        if (isset($beforeOutputHook) && is_callable($beforeOutputHook)) {
+            $rows = call_user_func($beforeOutputHook, $rows, $beforeOutputHookParam);
         }
+        $file = fopen($targetFilePath, 'w');
+        foreach ($rows as $row) {
+            fputcsv($file, $row, ';');
+        }
+        fclose($file);
+    }
 
-        if ($debug) {
+    /**
+     * Streams a CSV export to the client/browser/user agent
+     * @param string $filename The filename proposed to the client
+     * @param array $fieldsConditions Conditions a column's properties need to match to be included in this export
+     * @param callable $beforeOutputHook Takes $rows, can manipulate them and should return them
+     * @params array $processData Will be forwarded to Editor->process(…) and processed like $_POST vars
+     * @params bool $debug Flag for development purposes
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    protected function streamCSVToBrowser(
+        $filename,
+        $fieldsConditions = [],
+        $beforeOutputHook = null,
+        $beforeOutputHookParam = null,
+        $processData = null,
+        $debug = false
+    ) {
+        $headers = $debug ? [] : [
+            'Content-type' => $debug ? 'test/html' : 'text/csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+            'Content-Disposition' => "attachment; filename=$filename",
+        ];
+
+        return response()->stream(function () use (
+            $fieldsConditions,
+            $beforeOutputHook,
+            $processData,
+            $beforeOutputHookParam
+        ) {
             $rows = $this->flattenedData($fieldsConditions, $processData);
             if (isset($beforeOutputHook) && is_callable($beforeOutputHook)) {
-                $rows = call_user_func($beforeOutputHook, $rows);
-            }
-            dd($rows);
-        }
-
-        return response()->stream(function () use ($fieldsConditions, $beforeOutputHook, $processData) {
-            $rows = $this->flattenedData($fieldsConditions, $processData);
-            if (isset($beforeOutputHook) && is_callable($beforeOutputHook)) {
-                $rows = call_user_func($beforeOutputHook, $rows);
+                $rows = call_user_func($beforeOutputHook, $rows, $beforeOutputHookParam);
             }
             $file = fopen('php://output', 'w');
             foreach ($rows as $row) {
